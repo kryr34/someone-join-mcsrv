@@ -29,20 +29,20 @@ func main() {
 	var lastStat ServerStatus
 	lastAP := 0
 	for range time.Tick(time.Minute * 15) {
-		srvInfo, srvStat := getStatus(mcsrvAddress)
-		if srvStat == Offline && lastStat == Online {
+		srvInfo, _ := getStatus(mcsrvAddress)
+		if srvInfo.Status == Offline && lastStat == Online {
 			webhook.sentMessage("OOF! ther server apparently broken")
 		} else {
-			if srvInfo.currecntPlayer == lastAP {
+			if srvInfo.CurrecntPlayer == lastAP {
 				//pass
-			} else if srvInfo.currecntPlayer > lastAP {
+			} else if srvInfo.CurrecntPlayer > lastAP {
 				webhook.sentMessage("Someone join the server")
 			} else {
 				webhook.sentMessage("Someone leave the server")
 			}
 		}
-		log.Println(srvInfo, srvStat)
-		lastStat = srvStat
-		lastAP = srvInfo.currecntPlayer
+		log.Println(srvInfo)
+		lastStat = srvInfo.Status
+		lastAP = srvInfo.CurrecntPlayer
 	}
 }
