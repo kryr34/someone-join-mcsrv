@@ -11,14 +11,19 @@ type Webhook struct {
 	Url string
 }
 
-func (webhook *Webhook) sentMessage(content string) {
+func (webhook *Webhook) sentMessage(content string) error {
 	reqBody, err := json.Marshal(map[string]any{
 		"content": content,
 	})
-	FatalIfErr(err)
-
-	_, err = http.Post(webhook.Url, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
-		log.Println(err)
+		return err
 	}
+
+	re, err := http.Post(webhook.Url, "application/json", bytes.NewBuffer(reqBody))
+	if err != nil {
+		log.Println(re)
+		return err
+	}
+
+	return nil
 }
