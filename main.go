@@ -26,9 +26,11 @@ func main() {
 	webhook := Webhook{webhookUrl}
 	mcsrvAddress := viper.GetString("mcsrvAddress")
 
+	interval := viper.GetDuration("interval")
+
 	var lastStat ServerStatus
-	lastAP := 0
-	for range time.Tick(time.Minute * 15) {
+	var lastAP int
+	for range time.Tick(time.Second * interval) {
 		srvInfo, _ := getStatus(mcsrvAddress)
 		if srvInfo.Status == Offline && lastStat == Online {
 			webhook.sentMessage("OOF! the server apparently broken")
