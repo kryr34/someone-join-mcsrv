@@ -25,33 +25,24 @@ func main() {
 	webhookUrl := viper.GetString("webhookUrl")
 	webhook := Webhook{webhookUrl}
 	mcsrvAddress := viper.GetString("mcsrvAddress")
-	if webhookUrl == "" {
-		log.Fatalln("webhookUrl not found")
-	}
-	if mcsrvAddress == "" {
-		log.Fatalln("mcsrvAddress not found")
-	}
 
 	var lastStat ServerStatus
 	lastAP := 0
 	for range time.Tick(time.Minute * 15) {
-		srvInfo, _ := getStatus(mcsrvAddress)
-		if srvInfo.Status == Offline && lastStat == Online {
-			webhook.sentMessage("OOF! the server apparently broken")
+		srvInfo, srvStat := getStatus(mcsrvAddress)
+		if srvStat == Offline && lastStat == Online {
+			webhook.sentMessage("OOF! ther server apparently broken")
 		} else {
-			if srvInfo.Status == Online && lastStat == Offline {
-				webhook.sentMessage("POG! the server ")
-			}
-			if srvInfo.CurrecntPlayer == lastAP {
+			if srvInfo.currecntPlayer == lastAP {
 				//pass
-			} else if srvInfo.CurrecntPlayer > lastAP {
+			} else if srvInfo.currecntPlayer > lastAP {
 				webhook.sentMessage("Someone join the server")
 			} else {
 				webhook.sentMessage("Someone leave the server")
 			}
 		}
-		log.Println(srvInfo)
-		lastStat = srvInfo.Status
-		lastAP = srvInfo.CurrecntPlayer
+		log.Println(srvInfo, srvStat)
+		lastStat = srvStat
+		lastAP = srvInfo.currecntPlayer
 	}
 }
