@@ -2,18 +2,13 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"time"
 
 	viper "github.com/spf13/viper"
 )
-
-func FatalIfErr(err error) {
-	if err != nil {
-		log.Fatalln(err)
-	}
-}
 
 func main() {
 	b, err := ioutil.ReadFile("config.toml")
@@ -33,20 +28,21 @@ func main() {
 	for range time.Tick(time.Second * interval) {
 		srvInfo, _ := getStatus(mcsrvAddress)
 		if srvInfo.Status == Offline && lastStat == Online {
-			webhook.sentMessage("OOF! the server apparently broken")
+			err = webhook.sentMessage("OOF! the server apparently broken")
 		} else {
 			if srvInfo.Status == Online && lastStat == Offline {
-				webhook.sentMessage("POG! the server is working again")
+				err = webhook.sentMessage("POG! the server is working again")
 			}
 			if srvInfo.CurrecntPlayer == lastAP {
 				//pass
 			} else if srvInfo.CurrecntPlayer > lastAP {
-				webhook.sentMessage("Someone join the server")
+				err = webhook.sentMessage("Someone join the server")
 			} else {
-				webhook.sentMessage("Someone leave the server")
+				err = webhook.sentMessage("Someone leave the server")
 			}
 		}
-		log.Println(srvInfo)
+		log.Printf("Webhook error: %v\n", err)
+		log.Println(fmt.Sprintf("%+v\n", srvInfo))
 		lastStat = srvInfo.Status
 		lastAP = srvInfo.CurrecntPlayer
 	}
