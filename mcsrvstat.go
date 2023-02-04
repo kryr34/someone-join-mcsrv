@@ -15,24 +15,32 @@ const (
 )
 
 type ServerInfo struct {
-	description    string
-	currecntPlayer int
-	maxPlayer      int
+	Status         ServerStatus
+	Description    string
+	CurrecntPlayer int
+	MaxPlayer      int
 }
 
-func getStatus(address string) (ServerInfo, ServerStatus) {
+func getStatus(address string) (ServerInfo, error) {
 	con, err := net.Dial("tcp", address)
 	if err != nil {
 		log.Println(err)
-		return ServerInfo{}, Offline
+		info := ServerInfo{}
+		info.Status = Offline
+		return info, nil
 	}
 
 	_, err = con.Write([]byte("\xfe"))
-	FatalIfErr(err)
+	if err != nil {
+		return ServerInfo{}, err
+	}
 
 	reply := make([]byte, 1024)
 	_, err = con.Read(reply)
-	FatalIfErr(err)
+	if err != nil {
+		return ServerInfo{}, err
+	}
+	con.Close()
 
 	s := string(reply)
 	s = strings.Replace(s, "\x00", "", -1)
@@ -40,5 +48,10 @@ func getStatus(address string) (ServerInfo, ServerStatus) {
 
 	cur, _ := strconv.Atoi(data[1])
 	max, _ := strconv.Atoi(data[2])
-	return ServerInfo{data[0], cur, max}, Online
+
+	return ServerInfo{
+		Online,
+		data[0],
+		cur, max,
+	}, nil
 }
